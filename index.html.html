@@ -1,0 +1,793 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = { theme: { extend: {
+  fontFamily: { sans:['Inter','ui-sans-serif','system-ui'], mono:['JetBrains Mono','ui-monospace'] },
+  colors: { ink:'#0a0a0f', panel:'#111118', line:'#1f1f2b', muted:'#8b8ba7', accent:'#7c5cff', accent2:'#22d3ee' }
+}}}
+</script>
+<style id="page-style">
+  html { scroll-behavior: smooth; }
+  body { color:#e6e6f0; position:relative; min-height:100vh; }
+  body::before {
+    content:""; position:fixed; inset:0; z-index:-2;
+    background-image: url("https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=2000&q=80");
+    background-size:cover; background-position:center; background-attachment:fixed;
+    filter: blur(2px) brightness(0.35) saturate(1.1);
+    opacity: 0.55;
+  }
+  body::after {
+    content:""; position:fixed; inset:0; z-index:-1;
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(124,92,255,.28), transparent 60%),
+      radial-gradient(900px 500px at -10% 30%, rgba(34,211,238,.18), transparent 60%),
+      linear-gradient(180deg, rgba(10,10,15,.55), rgba(10,10,15,.85));
+  }
+  .grid-bg {
+    background-image:
+      linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: radial-gradient(ellipse at top, black 40%, transparent 75%);
+  }
+  .glass { background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01)); border: 1px solid rgba(255,255,255,.06); backdrop-filter: blur(10px); }
+  .chip { border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.03); }
+  .gradient-text { background: linear-gradient(90deg,#fff 0%, #c9c2ff 50%, #88e6ff 100%); -webkit-background-clip:text; background-clip:text; color: transparent; }
+  .accent-text { color:#a48bff; }
+  .link-underline { background-image: linear-gradient(currentColor,currentColor); background-size:0% 1px; background-repeat:no-repeat; background-position:0 100%; transition: background-size .3s ease, color .25s, transform .25s; display:inline-block; }
+  .link-underline:hover { background-size:100% 1px; transform: translateY(-2px); }
+  .card-hover { transition: transform .5s cubic-bezier(.2,.8,.2,1), border-color .35s, box-shadow .5s; transform-style: preserve-3d; will-change: transform; }
+  .card-hover:hover { transform: translateY(-6px) rotateX(4deg) rotateY(-4deg) scale(1.02); border-color: rgba(124,92,255,.55); box-shadow: 0 30px 60px -20px rgba(124,92,255,.35), 0 0 0 1px rgba(124,92,255,.25); }
+  section { perspective: 1200px; }
+  .reveal { opacity:0; transform: translateY(40px) rotateX(-8deg) scale(.97); transition: opacity .9s ease, transform .9s cubic-bezier(.2,.8,.2,1); transform-origin: center top; }
+  .reveal.in { opacity:1; transform: translateY(0) rotateX(0) scale(1); }
+  @keyframes pulse3d {
+    0% { transform: scale(1) rotateX(0); box-shadow: 0 0 0 rgba(124,92,255,0); }
+    35% { transform: scale(1.012) rotateX(2deg); box-shadow: 0 30px 80px -20px rgba(124,92,255,.45); }
+    100% { transform: scale(1) rotateX(0); box-shadow: 0 0 0 rgba(124,92,255,0); }
+  }
+  .pulse-target { animation: pulse3d 1.1s ease; }
+  .dot { width:6px; height:6px; border-radius:9999px; background:#22d3ee; box-shadow:0 0 12px #22d3ee; }
+
+  /* Floating nav preview */
+  #hoverPreview { position:fixed; top:0; left:0; width:260px; height:170px; border-radius:16px; overflow:hidden; pointer-events:none; opacity:0; transform: translate(-50%, -120%) rotateX(25deg) rotateY(-12deg) scale(.7); transform-origin: center bottom; transition: opacity .35s ease, transform .55s cubic-bezier(.2,.8,.2,1); z-index:100; box-shadow: 0 30px 60px -15px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.08); background:#111118; }
+  #hoverPreview.show { opacity:1; transform: translate(-50%, -120%) rotateX(0) rotateY(0) scale(1); }
+  #hoverPreview img { width:100%; height:100%; object-fit:cover; display:block; transform: scale(1.06); transition: transform 1.2s ease; }
+  #hoverPreview.show img { transform: scale(1); }
+  #hoverPreview .label { position:absolute; left:12px; bottom:10px; right:12px; font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:#fff; text-shadow:0 2px 8px rgba(0,0,0,.8); display:flex; justify-content:space-between; align-items:center; }
+  #hoverPreview::after { content:""; position:absolute; inset:0; background: linear-gradient(180deg, transparent 40%, rgba(0,0,0,.75) 100%); pointer-events:none; }
+
+  /* Edit mode controls */
+  body.edit-mode #editBtn { background:#7c5cff; color:#fff; border-color: transparent; }
+  body.edit-mode #editProfileBtn { display: inline-flex; }
+  body.edit-mode #profilePhoto { box-shadow: 0 0 0 3px rgba(124,92,255,.45); }
+  .btn-add { display:inline-flex; align-items:center; gap:6px; font-size:12px; padding:6px 12px; border-radius:8px; background: linear-gradient(90deg,#7c5cff,#22d3ee); color:#0a0a0f; font-weight:600; border:none; cursor:pointer; transition: transform .25s, filter .25s; }
+  .btn-add:hover { transform: translateY(-2px); filter: brightness(1.1); }
+  .btn-icon { display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:8px; background: rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); color:#c0c0d0; cursor:pointer; transition: background .2s, color .2s, transform .2s; }
+  .btn-icon:hover { background: rgba(124,92,255,.18); color:#fff; transform: translateY(-1px); }
+  .btn-icon.danger:hover { background: rgba(239,68,68,.2); color:#fff; }
+  .item-actions { position:absolute; top:12px; right:12px; display:flex; gap:6px; opacity:0; transition: opacity .25s; }
+  .card-hover:hover .item-actions { opacity:1; }
+
+  /* Modals */
+  .modal-backdrop { position:fixed; inset:0; background: rgba(0,0,0,.7); display:flex; align-items:center; justify-content:center; z-index:200; padding:16px; backdrop-filter: blur(6px); }
+  .modal-backdrop.hidden { display:none; }
+  .modal-card { background:#111118; border:1px solid #1f1f2b; border-radius:16px; padding:24px; width:100%; max-width:420px; box-shadow: 0 40px 80px -20px rgba(0,0,0,.6); animation: pop .25s ease; }
+  @keyframes pop { from { transform: scale(.95); opacity:0; } to { transform: scale(1); opacity:1; } }
+
+  /* File thumbs */
+  .file-thumb { border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,.08); background:#0a0a0f; aspect-ratio:16/10; cursor:pointer; position:relative; display:flex; align-items:center; justify-content:center; transition: transform .35s; }
+  .file-thumb:hover { transform: scale(1.02); }
+  .file-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+  .file-thumb .file-doc { display:flex; flex-direction:column; align-items:center; gap:6px; color:#c0c0d0; font-family:'JetBrains Mono',monospace; font-size:11px; padding:12px; text-align:center; }
+  .file-thumb .file-doc svg { width:42px; height:42px; opacity:.8; }
+
+  /* Verified badge */
+  .verified-badge {
+    display:inline-flex; align-items:center; gap:4px;
+    font-size: 10px; font-family:'JetBrains Mono',monospace; letter-spacing:.08em; text-transform:uppercase;
+    color:#86efac; background: rgba(34,197,94,.12); border:1px solid rgba(34,197,94,.35);
+    border-radius: 999px; padding: 3px 8px;
+  }
+  .verified-badge svg { width:11px; height:11px; }
+
+  /* Download CV pill in hero */
+  .cv-btn {
+    display:inline-flex; align-items:center; gap:6px;
+    padding: 12px 20px; border-radius: 10px;
+    background: rgba(34,197,94,.12); border:1px solid rgba(34,197,94,.35);
+    color:#86efac; font-weight:600; font-size:14px;
+    transition: transform .25s, background .25s, color .25s;
+  }
+  .cv-btn:hover { transform: translateY(-2px); background: rgba(34,197,94,.22); color:#fff; }
+
+  @media (hover: none), (pointer: coarse) {
+    #hoverPreview { display: none !important; }
+    .card-hover { transform: none !important; }
+    .card-hover:hover { transform: translateY(-4px) !important; box-shadow: 0 10px 30px -10px rgba(0,0,0,.5) !important; }
+    .item-actions { opacity: 1 !important; }
+  }
+  .modal-backdrop { overflow-y: auto; align-items: flex-start; padding-top: 32px; padding-bottom: 32px; }
+  .modal-card { max-height: calc(100vh - 64px); overflow-y: auto; }
+  @media (max-width: 640px) {
+    h1#heroHeadline { font-size: 2rem; line-height: 1.1; }
+    #profilePhoto { width: 7rem; height: 7rem; }
+    nav { padding-left: 1rem; padding-right: 1rem; }
+    .modal-card { padding: 18px; border-radius: 14px; }
+  }
+  @media (max-width: 768px) {
+    main section { padding-top: 3rem; padding-bottom: 3rem; }
+  }
+</style>
+</head>
+<body class="font-sans antialiased selection:bg-accent/40 selection:text-white">
+
+<div id="hoverPreview" aria-hidden="true">
+  <img id="hoverPreviewImg" alt="" />
+  <div class="label"><span id="hoverPreviewLabel"></span><span>&rarr;</span></div>
+</div>
+
+<header class="sticky top-0 z-50 backdrop-blur-md bg-ink/70 border-b border-line/60">
+  <nav class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+    <a href="#top" class="flex items-center gap-2 font-semibold">
+      <span id="brandAvatar" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-accent to-accent2 text-ink font-bold overflow-hidden">Y</span>
+      <span id="brandName">Your Name</span>
+    </a>
+    <ul class="hidden md:flex items-center gap-6 lg:gap-7 text-sm text-muted">
+      <li><a href="#about"        data-img="https://images.unsplash.com/photo-1531746790731-6c087fecd65a?auto=format&fit=crop&w=800&q=80" data-label="About"        class="hover:text-white link-underline">About</a></li>
+      <li><a href="#education"    data-img="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=800&q=80" data-label="Education"    class="hover:text-white link-underline">Education</a></li>
+      <li><a href="#work"         data-img="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=800&q=80" data-label="Work"         class="hover:text-white link-underline">Work</a></li>
+      <li><a href="#projects"     data-img="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80" data-label="Projects"     class="hover:text-white link-underline">Projects</a></li>
+      <li><a href="#certificates" data-img="https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?auto=format&fit=crop&w=800&q=80" data-label="Certificates" class="hover:text-white link-underline">Certificates</a></li>
+      <li><a href="#skills"       data-img="https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80" data-label="Skills"       class="hover:text-white link-underline">Skills</a></li>
+      <li><a href="#hobbies"      data-img="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=800&q=80" data-label="Hobbies"      class="hover:text-white link-underline">Hobbies</a></li>
+      <li><a href="#interests"    data-img="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=800&q=80" data-label="Interests"    class="hover:text-white link-underline">Interests</a></li>
+      <li><a href="#contact"      data-img="https://images.unsplash.com/photo-1596526131083-e8c633c948d2?auto=format&fit=crop&w=800&q=80" data-label="Contact"      class="hover:text-white link-underline">Contact</a></li>
+    </ul>
+    <div class="flex items-center gap-2">
+      <button id="editBtn" class="text-xs px-3 py-1.5 rounded-md border border-line text-muted hover:text-white">Edit</button>
+      <button id="menuBtn" class="md:hidden text-muted hover:text-white p-2 -mr-2" aria-label="Open menu">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+  </nav>
+  <div id="mobileMenu" class="md:hidden hidden border-t border-line/60 bg-ink/95 backdrop-blur-md">
+    <ul class="px-6 py-4 grid gap-3 text-sm">
+      <li><a href="#about"        class="block py-2 text-muted hover:text-white">About</a></li>
+      <li><a href="#education"    class="block py-2 text-muted hover:text-white">Education</a></li>
+      <li><a href="#work"         class="block py-2 text-muted hover:text-white">Work</a></li>
+      <li><a href="#projects"     class="block py-2 text-muted hover:text-white">Projects</a></li>
+      <li><a href="#certificates" class="block py-2 text-muted hover:text-white">Certificates</a></li>
+      <li><a href="#skills"       class="block py-2 text-muted hover:text-white">Skills</a></li>
+      <li><a href="#hobbies"      class="block py-2 text-muted hover:text-white">Hobbies</a></li>
+      <li><a href="#interests"    class="block py-2 text-muted hover:text-white">Interests</a></li>
+      <li><a href="#contact"      class="block py-2 text-muted hover:text-white">Contact</a></li>
+    </ul>
+  </div>
+</header>
+
+<section id="top" class="relative overflow-hidden">
+  <div class="absolute inset-0 grid-bg pointer-events-none"></div>
+  <div class="relative max-w-6xl mx-auto px-6 pt-20 pb-24 md:pt-28 md:pb-32">
+    <div class="flex flex-col md:flex-row md:items-center gap-10">
+      <div id="profilePhotoWrap" class="relative shrink-0">
+        <div id="profilePhoto" class="w-36 h-36 md:w-44 md:h-44 rounded-full bg-gradient-to-br from-accent/60 to-accent2/40 border-2 border-white/10 shadow-2xl overflow-hidden flex items-center justify-center text-5xl font-bold text-white/80">
+          <span id="profilePhotoInitial">Y</span>
+        </div>
+        <button id="editProfileBtn" class="hidden absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-white text-ink shadow-lg items-center justify-center hover:scale-105 transition" title="Edit profile">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 113 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+        </button>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div id="heroBadge" class="inline-flex items-center gap-2 text-xs font-mono tracking-wide text-muted chip rounded-full px-3 py-1 mb-6">
+          <span class="dot"></span> <span id="heroBadgeText">Open to full-time opportunities &middot; 2026</span>
+        </div>
+        <h1 id="heroHeadline" class="text-4xl md:text-6xl font-extrabold leading-[1.05] tracking-tight gradient-text">
+          Computer Science student<br/>building useful software<span class="accent-text">.</span>
+        </h1>
+        <p id="heroBio" class="mt-6 max-w-2xl text-base md:text-lg text-muted leading-relaxed">
+          Hi, I'm Your Name — a final-year CS student looking for an entry-level Software Engineer / Web Developer role.
+        </p>
+        <div class="mt-8 flex flex-wrap gap-3 items-center">
+          <a id="heroCta1" href="#projects" class="px-5 py-3 rounded-lg bg-gradient-to-r from-accent to-accent2 text-ink font-semibold">View my work</a>
+          <a id="heroCta2" href="#contact" class="px-5 py-3 rounded-lg glass hover:border-white/20">Get in touch</a>
+          <button id="cvBtn" class="cv-btn hidden">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span id="cvBtnLabel">View / Download CV</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<main class="max-w-6xl mx-auto px-6">
+  <section id="about"        class="py-20 border-t border-line/60" data-section="about"        data-title="About Me"     data-num="01"></section>
+  <section id="education"    class="py-20 border-t border-line/60" data-section="education"    data-title="Education"    data-num="02"></section>
+  <section id="work"         class="py-20 border-t border-line/60" data-section="work"         data-title="Work"         data-num="03"></section>
+  <section id="projects"     class="py-20 border-t border-line/60" data-section="projects"     data-title="Projects"     data-num="04"></section>
+  <section id="certificates" class="py-20 border-t border-line/60" data-section="certificates" data-title="Certificates" data-num="05"></section>
+  <section id="skills"       class="py-20 border-t border-line/60" data-section="skills"       data-title="Skills"       data-num="06"></section>
+  <section id="hobbies"      class="py-20 border-t border-line/60" data-section="hobbies"      data-title="Hobbies"      data-num="07"></section>
+  <section id="interests"    class="py-20 border-t border-line/60" data-section="interests"    data-title="Interests"    data-num="08"></section>
+  <section id="contact"      class="py-20 border-t border-line/60" data-section="contact"      data-title="Contact"      data-num="09"></section>
+</main>
+
+<footer class="border-t border-line/60 mt-10">
+  <div class="max-w-6xl mx-auto px-6 py-8 flex flex-wrap items-center justify-between gap-4 text-sm text-muted">
+    <p>&copy; <span id="year"></span> <span id="footerName">Your Name</span>.</p>
+    <div class="flex items-center gap-4 text-xs">
+      <button id="exportBtn" class="hover:text-white">Export data</button>
+      <label class="hover:text-white cursor-pointer">
+        Import data
+        <input id="importInput" type="file" accept="application/json" class="hidden">
+      </label>
+    </div>
+  </div>
+</footer>
+
+<div id="profileModal" class="modal-backdrop hidden">
+  <div class="modal-card max-w-xl">
+    <h3 class="text-lg font-semibold mb-4">Edit profile</h3>
+    <div class="flex items-center gap-4 mb-5">
+      <div id="profileModalPreview" class="w-20 h-20 rounded-full bg-panel border border-line overflow-hidden flex items-center justify-center text-2xl font-bold text-white/60">Y</div>
+      <div class="flex flex-col gap-2 text-xs">
+        <label class="inline-block">
+          <span class="px-3 py-1.5 rounded-md bg-white text-ink font-semibold cursor-pointer">Upload photo</span>
+          <input id="profilePhotoInput" type="file" accept="image/*" class="hidden">
+        </label>
+        <button id="profilePhotoRemove" type="button" class="text-red-400 hover:text-red-300 text-left">Remove photo</button>
+      </div>
+    </div>
+
+    <label class="block text-xs text-muted mb-1">Your name</label>
+    <input id="pfName" class="w-full bg-panel border border-line rounded-md px-3 py-2 text-sm mb-3" placeholder="e.g. Aisha Khan" />
+    <label class="block text-xs text-muted mb-1">Hero badge (status line)</label>
+    <input id="pfBadge" class="w-full bg-panel border border-line rounded-md px-3 py-2 text-sm mb-3" />
+    <label class="block text-xs text-muted mb-1">Headline (use \n for line break)</label>
+    <textarea id="pfHeadline" rows="2" class="w-full bg-panel border border-line rounded-md px-3 py-2 text-sm mb-3"></textarea>
+    <label class="block text-xs text-muted mb-1">Bio / intro paragraph</label>
+    <textarea id="pfBio" rows="3" class="w-full bg-panel border border-line rounded-md px-3 py-2 text-sm mb-3"></textarea>
+
+    <div class="grid grid-cols-2 gap-3 mb-3">
+      <div>
+        <label class="block text-xs text-muted mb-1">Primary button text</label>
+        <input id="pfCta1Text" class="w-full bg-panel border border-line rounded-md px-3 py-2 text-sm" />
+      </div>
+      <div>
+        <label class="block text-xs text-muted mb-1">Primary button link</label>
+        <input id="pfCta1Href" class="w-full bg-panel border border-line rounded-md px-3 py-2 text-sm" />
+      </div>
+      <div>
+        <label class="block text-xs text-muted mb-1">Secondary button text</label>
+        <input id="pfCta2Text" class="w-full bg-panel border border-line rounded-md px-3 py-2 text-sm" />
+      </div>
+      <div>
+        <label class="block text-xs text-muted mb-1">Secondary button link</label>
+        <input id="pfCta2Href" class="w-full bg-panel border border-line rounded-md px-3 py-2 text-sm" />
+      </div>
+    </div>
+
+    <div class="border-t border-line/60 pt-4 mt-2">
+      <label class="block text-xs text-muted mb-2">CV / Résumé (PDF or DOCX, up to 25 MB)</label>
+      <div class="flex items-center gap-3 mb-2">
+        <label class="inline-block">
+          <span class="px-3 py-1.5 rounded-md bg-white text-ink font-semibold cursor-pointer text-xs">Upload CV</span>
+          <input id="pfCvInput" type="file" accept="application/pdf,.doc,.docx" class="hidden">
+        </label>
+        <button id="pfCvRemove" type="button" class="text-xs text-red-400 hover:text-red-300 hidden">Remove CV</button>
+      </div>
+      <div id="pfCvMeta" class="text-xs text-muted"></div>
+    </div>
+
+    <div id="profileError" class="text-xs text-red-400 mb-2 hidden"></div>
+    <div class="flex justify-end gap-2 mt-5">
+      <button class="text-sm px-4 py-2 rounded-md text-muted hover:text-white" data-close>Cancel</button>
+      <button id="profileSave" class="text-sm px-4 py-2 rounded-md bg-white text-ink font-semibold">Save profile</button>
+    </div>
+  </div>
+</div>
+
+<div id="itemModal" class="modal-backdrop hidden">
+  <div class="modal-card max-w-xl">
+    <h3 class="text-lg font-semibold mb-4" id="itemModalTitle">Add item</h3>
+    <input type="hidden" id="itemId" />
+    <input type="hidden" id="itemSection" />
+    <label class="block text-xs text-muted mb-1">Title</label>
+    <input id="itemTitle" class="w-full bg-panel border border-line rounded-md px-3 py-2 text-sm mb-3" />
+    <label class="block text-xs text-muted mb-1">Subtitle / tags (optional)</label>
+    <input id="itemSubtitle" class="w-full bg-panel border border-line rounded-md px-3 py-2 text-sm mb-3" />
+    <label class="block text-xs text-muted mb-1">Description</label>
+    <textarea id="itemBody" rows="4" class="w-full bg-panel border border-line rounded-md px-3 py-2 text-sm mb-3"></textarea>
+    <label class="block text-xs text-muted mb-1" id="itemFileLabel">Attachment</label>
+    <div class="flex items-center gap-3 mb-2">
+      <input id="itemFile" type="file" accept="image/*,application/pdf,.doc,.docx,.txt,.md" class="text-xs text-muted file:mr-3 file:px-3 file:py-1.5 file:rounded-md file:border-0 file:bg-white file:text-ink file:cursor-pointer" />
+      <button id="itemFileClear" type="button" class="text-xs text-muted hover:text-white hidden">Remove file</button>
+    </div>
+    <div id="itemFileMeta" class="text-xs text-muted mb-3"></div>
+    <div id="itemError" class="text-xs text-red-400 mb-2 hidden"></div>
+    <div class="flex justify-between items-center mt-5">
+      <button id="itemDelete" class="text-sm text-red-400 hover:text-red-300 hidden">Delete</button>
+      <div class="flex gap-2 ml-auto">
+        <button class="text-sm px-4 py-2 rounded-md text-muted hover:text-white" data-close>Cancel</button>
+        <button id="itemSave" class="text-sm px-4 py-2 rounded-md bg-white text-ink font-semibold">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="viewerModal" class="modal-backdrop hidden">
+  <div class="modal-card max-w-4xl w-full">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-sm font-semibold" id="viewerTitle"></h3>
+      <div class="flex items-center gap-3">
+        <a id="viewerDownload" class="text-xs text-accent2 hover:underline" download>Download</a>
+        <button class="text-sm text-muted hover:text-white" data-close>Close</button>
+      </div>
+    </div>
+    <div id="viewerBody" class="bg-panel rounded-lg overflow-hidden" style="min-height:60vh;"></div>
+  </div>
+</div>
+
+<script id="page-script">
+const STORAGE_KEY = 'portfolio_data_v1';
+const PROFILE_KEY = 'portfolio_profile_v1';
+const MAX_FILE_BYTES = 25 * 1024 * 1024;
+const MAX_FILE_LABEL = '25 MB';
+
+let _idb = null;
+function idb() {
+  if (_idb) return _idb;
+  _idb = new Promise((resolve, reject) => {
+    const req = indexedDB.open('portfolio_files', 1);
+    req.onupgradeneeded = () => req.result.createObjectStore('files', { keyPath: 'id', autoIncrement: true });
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+  return _idb;
+}
+async function idbPut(file) {
+  const db = await idb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('files', 'readwrite');
+    const req = tx.objectStore('files').put({ name: file.name, mime: file.mime || file.type || 'application/octet-stream', size: file.size, blob: file.blob });
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function idbGet(id) {
+  const db = await idb();
+  return new Promise((resolve, reject) => {
+    const req = db.transaction('files').objectStore('files').get(id);
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function idbDelete(id) {
+  const db = await idb();
+  return new Promise((resolve, reject) => {
+    const req = db.transaction('files', 'readwrite').objectStore('files').delete(id);
+    req.onsuccess = () => resolve(); req.onerror = () => reject(req.error);
+  });
+}
+
+const urlsMap = new Map();
+async function ensureUrl(id) {
+  if (!id) return null;
+  if (urlsMap.has(id)) return urlsMap.get(id);
+  const f = await idbGet(id);
+  if (!f) return null;
+  const url = URL.createObjectURL(f.blob);
+  urlsMap.set(id, url);
+  return url;
+}
+
+const SECTIONS = ['about','education','work','projects','certificates','skills','hobbies','interests','contact'];
+
+const DEFAULT_PROFILE = {
+  name: "Your Name",
+  badge: "Open to full-time opportunities · 2026",
+  headline: "Computer Science student\\nbuilding useful software.",
+  bio: "Hi, I'm Your Name — a final-year CS student looking for an entry-level Software Engineer / Web Developer role.",
+  cta1Text: "View my work",
+  cta1Href: "#projects",
+  cta2Text: "Get in touch",
+  cta2Href: "#contact",
+  photo: null,
+  cv: null
+};
+
+const SEED = {
+  about: [
+    { title: "Who I am", subtitle: "Computer Science student", body: "I'm a final-year CS student who fell in love with programming after building my first website in high school. I care about clean code, clear communication, and shipping things that solve real problems." }
+  ],
+  education: [
+    { title: "B.Sc. in Computer Science", subtitle: "Your University · 2022 – 2026", body: "Relevant coursework: Data Structures, Algorithms, Operating Systems, Databases, Web Development. CGPA: X.XX / 10." },
+    { title: "Higher Secondary (Science / PCM)", subtitle: "Your School · 2020 – 2022", body: "Percentage: XX%." }
+  ],
+  work: [
+    { title: "Software Engineering Intern", subtitle: "Company Name · Summer 2025", body: "Built internal dashboards in React + Node, improved page load by 35%, and shipped two production features used by 500+ daily users." },
+    { title: "Freelance Web Developer", subtitle: "Self-employed · 2024 – Present", body: "Designed and delivered three small business websites end-to-end (Next.js + Tailwind). Handled requirements, design, deployment, and post-launch support." }
+  ],
+  projects: [
+    { title: "Task Flow", subtitle: "React · Node.js · PostgreSQL", body: "Real-time team Kanban app with drag & drop and role-based access." },
+    { title: "DevBlog", subtitle: "Next.js · TypeScript · MDX", body: "A minimal markdown blogging engine I built to learn Next.js end-to-end." }
+  ],
+  certificates: [
+    { title: "Full-Stack Web Development", subtitle: "Coursera · 2024", body: "Specialization covering React, Node and deployment." }
+  ],
+  skills: [
+    { title: "Languages", subtitle: "", body: "JavaScript, TypeScript, Python, Java, SQL, HTML/CSS" },
+    { title: "Frameworks", subtitle: "", body: "React, Next.js, Node.js, Express, Tailwind" },
+    { title: "Tooling", subtitle: "", body: "Git & GitHub, Docker, Linux, Postman, VS Code" }
+  ],
+  hobbies: [
+    { title: "Guitar", subtitle: "5+ years", body: "Self-taught acoustic player; I unwind by learning new songs every weekend." },
+    { title: "Chess", subtitle: "Rapid 1500", body: "Daily puzzles and online rapid games. Helps me stay sharp at problem-solving." },
+    { title: "Photography", subtitle: "Mobile + DSLR", body: "Street photography on weekends — I enjoy capturing light and small moments." }
+  ],
+  interests: [
+    { title: "Distributed systems", subtitle: "", body: "Reading about how big systems stay reliable — Kafka, Raft, and consistency models." },
+    { title: "UI / UX design", subtitle: "", body: "I follow design systems and try to apply good visual hierarchy to my own projects." },
+    { title: "Open source", subtitle: "", body: "Trying to contribute small fixes to libraries I actually use." },
+    { title: "AI & LLMs", subtitle: "", body: "Curious about how to ship genuinely useful AI features without the hype." }
+  ],
+  contact: [
+    { title: "Email", subtitle: "you@example.com", body: "Best way to reach me." },
+    { title: "LinkedIn", subtitle: "linkedin.com/in/your-handle", body: "Lets connect." },
+    { title: "GitHub", subtitle: "github.com/your-handle", body: "My open-source and side projects." }
+  ]
+};
+
+let state = { items: [], editMode: false, profile: { ...DEFAULT_PROFILE } };
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) state.items = JSON.parse(raw);
+    else { seed(); }
+  } catch { seed(); }
+  try {
+    const p = localStorage.getItem(PROFILE_KEY);
+    if (p) state.profile = { ...DEFAULT_PROFILE, ...JSON.parse(p) };
+  } catch {}
+}
+function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.items)); }
+function saveProfile() { localStorage.setItem(PROFILE_KEY, JSON.stringify(state.profile)); }
+function seed() {
+  let id = 1;
+  state.items = [];
+  for (const sec of SECTIONS) {
+    (SEED[sec] || []).forEach((it, idx) => {
+      state.items.push({ id: id++, section: sec, order: idx, file: null, ...it });
+    });
+  }
+  save();
+}
+
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+const esc = (s) => (s == null ? '' : String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])));
+
+document.getElementById('year').textContent = new Date().getFullYear();
+
+function applyProfile() {
+  const p = state.profile;
+  $('#brandName').textContent = p.name || 'Portfolio';
+  $('#footerName').textContent = p.name || 'Portfolio';
+  $('#heroBadgeText').textContent = p.badge || '';
+  const lines = (p.headline || '').split(/\\n|\n/);
+  $('#heroHeadline').innerHTML = lines.map(esc).join('<br/>');
+  $('#heroBio').textContent = p.bio || '';
+  $('#heroCta1').textContent = p.cta1Text || ''; $('#heroCta1').href = p.cta1Href || '#';
+  $('#heroCta2').textContent = p.cta2Text || ''; $('#heroCta2').href = p.cta2Href || '#';
+  const initial = (p.name || 'Y').trim().charAt(0).toUpperCase() || 'Y';
+  const brand = $('#brandAvatar');
+  const photo = $('#profilePhoto');
+  if (p.photo && p.photo.data) {
+    photo.innerHTML = `<img src="${p.photo.data}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">`;
+    brand.innerHTML = `<img src="${p.photo.data}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">`;
+  } else {
+    photo.innerHTML = `<span id="profilePhotoInitial">${initial}</span>`;
+    brand.textContent = initial;
+  }
+  const cvBtn = $('#cvBtn');
+  if (p.cv && p.cv.id) {
+    cvBtn.classList.remove('hidden');
+    $('#cvBtnLabel').textContent = `View / Download CV`;
+    cvBtn.onclick = () => openCv();
+  } else {
+    cvBtn.classList.add('hidden');
+    cvBtn.onclick = null;
+  }
+}
+
+async function openCv() {
+  const cv = state.profile.cv; if (!cv) return;
+  const url = await ensureUrl(cv.id); if (!url) return;
+  openViewer({ name: cv.name, mime: cv.mime, url });
+}
+
+function isImage(mime) { return mime && mime.startsWith('image/'); }
+
+function renderItemCard(item) {
+  const fileUrl = item.file && item.file.id ? urlsMap.get(item.file.id) : null;
+  const isImg = item.file && isImage(item.file.mime);
+  const adminBtns = state.editMode ? `
+    <div class="item-actions">
+      <button class="btn-icon" data-edit="${item.id}" title="Edit"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 113 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></button>
+      <button class="btn-icon danger" data-del="${item.id}" title="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>
+    </div>` : '';
+  const fileBlock = (item.file && fileUrl) ? (isImg ? `
+      <div class="file-thumb mb-4" data-view="${item.id}"><img src="${fileUrl}" alt=""></div>` : `
+      <div class="file-thumb mb-4" data-view="${item.id}">
+        <div class="file-doc">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span>${esc(item.file.name)}</span>
+        </div>
+      </div>`) : '';
+  const badge = item.file ? `
+      <span class="verified-badge ml-2" title="Has attached document">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+        Verified
+      </span>` : '';
+  return `
+    <article class="glass rounded-2xl p-6 card-hover relative">
+      ${adminBtns}
+      ${fileBlock}
+      <h3 class="text-lg font-semibold flex items-center flex-wrap gap-y-1">
+        <span>${esc(item.title)}</span>${badge}
+      </h3>
+      ${item.subtitle ? `<p class="text-sm text-accent mt-1">${esc(item.subtitle)}</p>` : ''}
+      ${item.body ? `<p class="mt-3 text-sm text-muted leading-relaxed whitespace-pre-wrap">${esc(item.body)}</p>` : ''}
+    </article>`;
+}
+
+function render() {
+  document.body.classList.toggle('edit-mode', state.editMode);
+  $('#editBtn').textContent = state.editMode ? 'Exit edit mode' : 'Edit mode';
+  $$('main section[data-section]').forEach(sec => {
+    const key = sec.dataset.section;
+    const items = state.items.filter(i => i.section === key).sort((a,b) => (a.order||0) - (b.order||0));
+    const addBtn = state.editMode ? `<button class="btn-add" data-add="${key}">+ Add</button>` : '';
+    sec.innerHTML = `
+      <div class="flex items-end justify-between flex-wrap gap-4 mb-8">
+        <div>
+          <p class="text-xs font-mono text-accent2 tracking-widest">${sec.dataset.num} / ${sec.dataset.title.toUpperCase()}</p>
+          <h2 class="mt-2 text-3xl font-bold">${esc(sec.dataset.title)}</h2>
+        </div>
+        ${addBtn}
+      </div>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        ${items.length ? items.map(renderItemCard).join('') :
+          `<p class="text-sm text-muted col-span-full italic">${state.editMode ? 'No items yet — click + Add to create one.' : 'Coming soon.'}</p>`}
+      </div>`;
+  });
+  attachReveal();
+  attachTilt();
+}
+
+const io = new IntersectionObserver((es) => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }}), { threshold: 0.12 });
+function attachReveal() { $$('main section > div').forEach(el => { if (!el.classList.contains('reveal')) { el.classList.add('reveal'); io.observe(el); }}); }
+function attachTilt() {
+  if (isTouch) return;
+  $$('.card-hover').forEach(card => {
+    if (card._tilt) return; card._tilt = true;
+    card.addEventListener('mousemove', (e) => {
+      const r = card.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - 0.5;
+      const y = (e.clientY - r.top) / r.height - 0.5;
+      card.style.transform = `translateY(-6px) rotateX(${(-y*10).toFixed(2)}deg) rotateY(${(x*12).toFixed(2)}deg) scale(1.025)`;
+    });
+    card.addEventListener('mouseleave', () => { card.style.transform = ''; });
+  });
+}
+
+const preview = $('#hoverPreview'), pImg = $('#hoverPreviewImg'), pLbl = $('#hoverPreviewLabel');
+let pRaf = null;
+$$('nav a[data-img]').forEach(a => {
+  a.addEventListener('mouseenter', () => { pImg.src = a.dataset.img; pLbl.textContent = a.dataset.label || ''; preview.classList.add('show'); });
+  a.addEventListener('mousemove', (e) => {
+    if (pRaf) cancelAnimationFrame(pRaf);
+    pRaf = requestAnimationFrame(() => { preview.style.left = e.clientX + 'px'; preview.style.top = (e.clientY + 20) + 'px'; });
+  });
+  a.addEventListener('mouseleave', () => preview.classList.remove('show'));
+  a.addEventListener('click', () => {
+    const t = document.getElementById(a.getAttribute('href').slice(1));
+    if (!t) return;
+    t.classList.remove('pulse-target'); void t.offsetWidth; t.classList.add('pulse-target');
+    setTimeout(() => t.classList.remove('pulse-target'), 1200);
+  });
+});
+
+function openModal(id) { $('#' + id).classList.remove('hidden'); }
+function closeModal(id) { $('#' + id).classList.add('hidden'); }
+document.addEventListener('click', (e) => {
+  if (e.target.matches('[data-close]') || e.target.matches('.modal-backdrop')) {
+    const m = e.target.closest('.modal-backdrop'); if (m) m.classList.add('hidden');
+  }
+});
+
+$('#editBtn').addEventListener('click', () => { state.editMode = !state.editMode; render(); });
+
+const isTouch = window.matchMedia('(hover: none), (pointer: coarse)').matches;
+const menuBtn = $('#menuBtn'); const mobileMenu = $('#mobileMenu');
+if (menuBtn) menuBtn.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+mobileMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => mobileMenu.classList.add('hidden')));
+
+let pendingPhoto = undefined;
+function openProfileModal() {
+  pendingPhoto = undefined;
+  const p = state.profile;
+  $('#pfName').value     = p.name || '';
+  $('#pfBadge').value    = p.badge || '';
+  $('#pfHeadline').value = (p.headline || '').replace(/\\n/g, '\n');
+  $('#pfBio').value      = p.bio || '';
+  $('#pfCta1Text').value = p.cta1Text || ''; $('#pfCta1Href').value = p.cta1Href || '';
+  $('#pfCta2Text').value = p.cta2Text || ''; $('#pfCta2Href').value = p.cta2Href || '';
+  $('#profileError').classList.add('hidden');
+  renderProfileModalPreview(p.photo);
+  openModal('profileModal');
+}
+function renderProfileModalPreview(photo) {
+  const box = $('#profileModalPreview');
+  if (photo && photo.data) box.innerHTML = `<img src="${photo.data}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">`;
+  else box.textContent = ($('#pfName').value || 'Y').trim().charAt(0).toUpperCase() || 'Y';
+}
+$('#editProfileBtn').addEventListener('click', openProfileModal);
+$('#profilePhotoInput').addEventListener('change', (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  if (f.size > 3 * 1024 * 1024) { $('#profileError').textContent = 'Photo too large (max 3 MB).'; $('#profileError').classList.remove('hidden'); e.target.value=''; return; }
+  const r = new FileReader();
+  r.onload = () => { pendingPhoto = { name: f.name, mime: f.type || 'image/png', size: f.size, data: r.result }; renderProfileModalPreview(pendingPhoto); };
+  r.readAsDataURL(f);
+});
+$('#profilePhotoRemove').addEventListener('click', () => { pendingPhoto = null; renderProfileModalPreview(null); });
+$('#pfName').addEventListener('input', () => { if (pendingPhoto === undefined && !state.profile.photo) renderProfileModalPreview(null); });
+
+$('#profileSave').addEventListener('click', () => {
+  const next = {
+    ...state.profile,
+    name: $('#pfName').value.trim() || 'Your Name',
+    badge: $('#pfBadge').value.trim(),
+    headline: $('#pfHeadline').value,
+    bio: $('#pfBio').value,
+    cta1Text: $('#pfCta1Text').value.trim() || 'View my work',
+    cta1Href: $('#pfCta1Href').value.trim() || '#projects',
+    cta2Text: $('#pfCta2Text').value.trim() || 'Get in touch',
+    cta2Href: $('#pfCta2Href').value.trim() || '#contact'
+  };
+  if (pendingPhoto === null) next.photo = null;
+  else if (pendingPhoto) next.photo = pendingPhoto;
+  try { 
+    state.profile = next; 
+    saveProfile(); 
+  } catch { 
+    $('#profileError').textContent = 'Full storage layer. Reduce file scales.'; 
+    $('#profileError').classList.remove('hidden'); 
+    return; 
+  }
+  closeModal('profileModal');
+  applyProfile();
+});
+
+let pendingFile = null;
+const SECTION_HINTS = {
+  about:        { title: 'Title', subtitle: 'Focus Segment', body: 'Summary details...', file: 'Docs (max 3 MB)' },
+  education:    { title: 'Degree / Institution', subtitle: 'Timeline & Marks', body: 'Core metrics...', file: 'Certificates (max 3 MB)' }
+};
+function applyHints(section) {
+  const h = SECTION_HINTS[section] || SECTION_HINTS.about;
+  $('#itemTitle').placeholder    = h.title || 'Title';
+  $('#itemSubtitle').placeholder = h.subtitle || 'Subtitle';
+  $('#itemBody').placeholder     = h.body || 'Details...';
+  $('#itemFileLabel').textContent = h.file || 'Attachment (max 3 MB)';
+}
+function openItemModal(section, item) {
+  pendingFile = item ? item.file : null;
+  applyHints(section);
+  $('#itemSection').value = section;
+  $('#itemId').value = item ? item.id : '';
+  $('#itemTitle').value = item ? item.title : '';
+  $('#itemSubtitle').value = item ? (item.subtitle || '') : '';
+  $('#itemBody').value = item ? (item.body || '') : '';
+  $('#itemFile').value = '';
+  $('#itemFileMeta').textContent = pendingFile ? `Current: ${pendingFile.name}` : '';
+  $('#itemFileClear').classList.toggle('hidden', !pendingFile);
+  $('#itemDelete').classList.toggle('hidden', !item);
+  $('#itemError').classList.add('hidden');
+  $('#itemModalTitle').textContent = item ? 'Modify Entry' : 'Append to ' + section;
+  openModal('itemModal');
+}
+
+document.addEventListener('click', (e) => {
+  const add = e.target.closest('[data-add]');
+  if (add) { openItemModal(add.dataset.add, null); return; }
+  const ed = e.target.closest('[data-edit]');
+  if (ed) { const it = state.items.find(i => i.id == ed.dataset.edit); if (it) openItemModal(it.section, it); return; }
+  const del = e.target.closest('[data-del]');
+  if (del) { if (confirm('Remove selected element?')) { state.items = state.items.filter(i => i.id != del.dataset.del); save(); render(); } return; }
+  const view = e.target.closest('[data-view]');
+  if (view) {
+    const it = state.items.find(i => i.id == view.dataset.view);
+    if (it && it.file && it.file.id) {
+      ensureUrl(it.file.id).then(url => { if (url) openViewer({ name: it.file.name, mime: it.file.mime, url }); });
+    }
+    return;
+  }
+});
+
+$('#itemFile').addEventListener('change', (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  if (f.size > MAX_FILE_BYTES) { $('#itemError').textContent = `Max file scale exceeded.`; $('#itemError').classList.remove('hidden'); e.target.value=''; return; }
+  pendingFile = { _newFile: f, name: f.name, mime: f.type || 'application/octet-stream', size: f.size };
+  $('#itemFileMeta').textContent = `Target verified: ${f.name}`;
+  $('#itemFileClear').classList.remove('hidden');
+});
+
+$('#itemSave').addEventListener('click', async () => {
+  const title = $('#itemTitle').value.trim(); if (!title) return;
+  const id = $('#itemId').value;
+  let fileRef = null;
+  if (pendingFile && pendingFile._newFile) {
+    try {
+      const newId = await idbPut({ name: pendingFile.name, mime: pendingFile.mime, size: pendingFile.size, blob: pendingFile._newFile });
+      fileRef = { id: newId, name: pendingFile.name, mime: pendingFile.mime, size: pendingFile.size };
+    } catch (err) { return; }
+  } else if (pendingFile) { fileRef = pendingFile; }
+  
+  const payload = { title, subtitle: $('#itemSubtitle').value.trim() || null, body: $('#itemBody').value.trim() || null, file: fileRef };
+  if (id) {
+    const i = state.items.findIndex(x => x.id == id);
+    if (i >= 0) state.items[i] = { ...state.items[i], ...payload };
+  } else {
+    const section = $('#itemSection').value;
+    const nextId = (state.items.reduce((m,x) => Math.max(m, x.id), 0) || 0) + 1;
+    state.items.push({ id: nextId, section, order: state.items.filter(x => x.section === section).length, ...payload });
+  }
+  save(); 
+  if (fileRef && fileRef.id) await ensureUrl(fileRef.id);
+  closeModal('itemModal'); 
+  render();
+});
+
+function openViewer(file) {
+  $('#viewerTitle').textContent = file.name;
+  $('#viewerDownload').href = file.url;
+  const body = $('#viewerBody'); body.innerHTML = '';
+  if (isImage(file.mime)) body.innerHTML = `<img src="${file.url}" style="width:100%;height:auto;">`;
+  else body.innerHTML = `<iframe src="${file.url}" style="width:100%;height:75vh;border:0;"></iframe>`;
+  openModal('viewerModal');
+}
+
+$('#exportBtn').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify({ profile: state.profile, items: state.items }, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'portfolio-data.json'; a.click();
+});
+
+$('#importInput').addEventListener('change', (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const parsed = JSON.parse(r.result);
+      if (parsed.items) { state.items = parsed.items; save(); }
+      if (parsed.profile) { state.profile = { ...DEFAULT_PROFILE, ...parsed.profile }; saveProfile(); }
+      applyProfile(); render();
+    } catch { alert('Invalid dataset format.'); }
+  };
+  r.readAsText(f);
+});
+
+load(); applyProfile(); render();
+</script>
+</body>
+</html>
